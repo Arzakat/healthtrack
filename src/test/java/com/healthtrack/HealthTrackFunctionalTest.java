@@ -13,7 +13,7 @@ import org.openqa.selenium.chrome.ChromeDriver;
 
 public class HealthTrackFunctionalTest {
     private WebDriver driver;
-    private static final String APP_URL = "http://localhost:9090"; // Me funciona acá con: python -m http.server 9090
+    private static final String APP_URL = "http://localhost:9090"; // Me funciona !!!
 
     @BeforeEach
     public void setUp() {
