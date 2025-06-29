@@ -2,6 +2,7 @@ package com.healthtrack;
 import java.io.IOException;
 import java.util.Scanner;
 
+//Método para ingresar datos manualmente
 public class Main {
     public static void main(String[] args) throws IOException {
         SimpleServer.start();

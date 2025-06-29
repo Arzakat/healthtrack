@@ -27,14 +27,14 @@ public class SimpleServer {
                 }, "/api/peso");
 
             server.start();
-            System.out.println("🔥 Servidor activo en http://localhost:9090/api/peso");
-            System.out.println("👉 Presiona ENTER en esta consola para detenerlo...");
+            System.out.println("Servidor iniciado en http://localhost:9090/api/peso");
+            System.out.println("Presiona ENTER en la consola para detenerlo...");
 
             // Espera entrada de usuario para apagar
             new BufferedReader(new InputStreamReader(System.in)).readLine();
             
         } catch (IOException e) {
-            System.err.println("❌ Error: " + e.getMessage());
+            System.err.println("Error: " + e.getMessage());
         } finally {
             stopServer(); // Asegura el cierre
         }
@@ -42,9 +42,9 @@ public class SimpleServer {
 
     public static void stopServer() {
         if (server != null) {
-            System.out.println("\n🛑 Deteniendo servidor...");
+            System.out.println("\nDeteniendo servidor...");
             server.shutdownNow();
-            System.out.println("✅ Servidor detenido correctamente");
+            System.out.println("Servidor detenido correctamente");
         }
     }
 

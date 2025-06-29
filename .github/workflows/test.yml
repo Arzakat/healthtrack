@@ -22,6 +22,11 @@ jobs:
         java-version: '11'
         distribution: 'temurin'
 
+    #Compilar maven
+    - name: Compilar Proyecto Maven
+      run: mvn clean install
+      working-directory: ./
+
     # SonarQube (con fe)
     - name: SonarQube Scan
       uses: SonarSource/sonarqube-scan-action@master
@@ -52,11 +57,25 @@ jobs:
       env:
         APP_URL: http://localhost:9090
 
+    #Prueba de regresión
+    - name: Ejecutar Pruebas UI (Regression Tests)
+      run: mvn test -Dgroups=regression -Dselenium.grid.url=http://localhost:4444/wd/hub -Dbrowser.type=chrome
+      working-directory: ./
+
     # Pruebas de carga con JMeter
     - name: Setup JMeter
-      uses: samuelchristlieb/setup-jmeter@v1
-      with:
-        version: '5.4.1'
+      run: |
+        JMETER_VERSION=5.6.2
+        wget https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-$JMETER_VERSION.tgz
+        tar -xzf apache-jmeter-$JMETER_VERSION.tgz
+        echo "$PWD/apache-jmeter-$JMETER_VERSION/bin" >> $GITHUB_PATH
+
+    - name: Run JMeter tests
+      run: |
+        jmeter -n -t src/test/jmeter/HealthTrackTest.jmx -l results.jtl
+        grep -q "false" results.jtl && echo "::error::Pruebas JMeter fallidas" && exit 1
+        echo "Resultados JMeter:"
+        cat results.jtl
 
     # Reportes
     - name: Subir Reportes de Tests Maven
