@@ -22,10 +22,10 @@ jobs:
         java-version: '11'
         distribution: 'temurin'
 
-    #Compilar maven
-    - name: Compilar Proyecto Maven
-      run: mvn clean install
-      working-directory: ./
+    #Compilar maven - Se comenta por ser prueba en localhost
+    # - name: Compilar Proyecto Maven
+    #   run: mvn clean install
+    #   working-directory: ./
 
     # SonarQube (con fe)
     - name: SonarQube Scan
