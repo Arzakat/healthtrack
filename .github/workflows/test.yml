@@ -21,80 +21,57 @@ jobs:
       with:
         java-version: '11'
         distribution: 'temurin'
-    
-    - name: Cache dependencies
-      uses: actions/cache@v3
-      with:
-        path: ~/.m2/repository
-        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-        restore-keys: ${{ runner.os }}-m2-
 
     # SonarQube (con fe)
     - name: SonarQube Scan
       uses: SonarSource/sonarqube-scan-action@master
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
       with:
-        args: >
-          -Dsonar.projectKey=HealthTrack
-          -Dsonar.java.binaries=target/classes
-          -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+        args: -Dsonar.projectKey=HealthTrack
 
-    # # Pruebas unitarias
-    # - name: Run tests with coverage
-    #   run: |
-    #     mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent test
-    #     mvn jacoco:report
+    # Pruebas unitarias
+    - name: Run tests with coverage
+      run: |
+        mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent test
+        mvn jacoco:report
 
-    # # Iniciar Grizzly (puerto 9090)
-    # - name: Start server
-    #   run: |
-    #     mvn compile exec:java -Dexec.mainClass="com.healthtrack.Main" &
-    #     echo "Waiting for server..."
-    #     timeout 30 bash -c 'while ! curl -s http://localhost:9090/api/peso >/dev/null; do sleep 1; done'
+    # Iniciar Grizzly (puerto 9090)
+    - name: Start server
+      run: |
+        mvn compile exec:java -Dexec.mainClass="com.healthtrack.Main" &
+        echo "Waiting for server..."
+        timeout 30 bash -c 'while ! curl -s http://localhost:9090/api/peso >/dev/null; do sleep 1; done'
 
-    # # Pruebas funcionales con Selenium
-    # - name: Setup Chrome
-    #   uses: browser-actions/setup-chrome@v1
+    # Pruebas funcionales con Selenium
+    - name: Setup Chrome
+      uses: browser-actions/setup-chrome@v1
       
-    # - name: Run Selenium tests
-    #   run: mvn test -Dtest=HealthTrackFunctionalTest
-    #   env:
-    #     APP_URL: http://localhost:9090
+    - name: Run Selenium tests
+      run: mvn test -Dtest=HealthTrackFunctionalTest
+      env:
+        APP_URL: http://localhost:9090
 
-    # # Pruebas de carga con JMeter
-    # - name: Setup JMeter
-    #   uses: samuelchristlieb/setup-jmeter@v1
-    #   with:
-    #     version: '5.4.1'
+    # Pruebas de carga con JMeter
+    - name: Setup JMeter
+      uses: samuelchristlieb/setup-jmeter@v1
+      with:
+        version: '5.4.1'
 
-    # - name: Run performance tests
-    #   run: |
-    #     jmeter -n -t src/test/jmeter/HealthTrackTest.jmx \
-    #       -JAPP_URL=http://localhost:9090 \
-    #       -l results.jtl -e -o reports
-    #     echo "::warning::Error en pruebas de carga" if grep -q "false" results.jtl
-
-    # # Reportes
-    # - name: Upload test results
-    #   uses: actions/upload-artifact@v3
-    #   if: always()
-    #   with:
-    #     name: test-results
-    #     path: |
-    #       target/surefire-reports/
-    #       target/site/jacoco/
-    #       results.jtl
-    #       reports/
+    # Reportes
+    - name: Subir Reportes de Tests Maven
+      uses: actions/upload-artifact@v4
+      if: always() 
+      with:
+        name: surefire-reports
+        path: target/surefire-reports
 
     #TERMINAMOOOOOOOOOOS
-    - name: Finalizar Job y Reportar Estado
-    if: always()
-    run: |
-      if ${{ job.status == 'success' }}; then
-        echo "Las pruebas UI se completaron exitosamente."
-      else
-        echo "Las pruebas UI fallaron."
-        exit 1
-      fi
+    - name: Finalizar Job
+      if: always()
+      run: |
+        echo "Resultado del job: ${{ job.status }}"
+        if [ "${{ job.status }}" != "success" ]; then
+          echo "::error::Algunas pruebas fallaron"
+          exit 1
+        fi
